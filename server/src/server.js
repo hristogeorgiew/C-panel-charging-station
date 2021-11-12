@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import mongoose from 'mongoose';
 
 import db from './config/db.js'
+import routes from './routes/Routes.js'
 const app = express();
 
 app.use(cors());
@@ -22,6 +23,8 @@ mongoose.connect(db.connectString, {
 }).catch((err) => {
    console.log(err);
 })
+
+app.use(routes);
 
 const PORT = process.env.PORT || 5000;
 
