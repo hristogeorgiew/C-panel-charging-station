@@ -1,9 +1,19 @@
 import { Router } from 'express';
 import User from '../models/User.js'
+import { isAuthenticated } from '../middlewares/index.js';
+import jwt from 'jsonwebtoken';
+import config from '../config/config.js';
 
 const router = Router();
 
-router.get('/findById', async (req, res) => {
+function jwtSignUser(user){
+    const ONE_WEEK = 7 * 24 * 60 * 60
+    return jwt.sign(user, config.JwtSecret, {
+        expiresIn: ONE_WEEK
+    })
+}
+
+router.get('/findById', isAuthenticated,  async (req, res) => {
     const {user} = req;
         if(!user){
             return res.status(400).send({error: "server is having an issue plase try again latter"})
@@ -16,7 +26,7 @@ router.post('/signup', async (req, res) => {
         const user = await User.create(req.body)
         const userObjJson = user.toJSON();
 
-        res.send({user: userObjJson})
+        res.send({user: userObjJson, token: jwtSignUser(userObjJson)})
     } catch (error) {
         //проверяваме дали съществува username
         if(Object.keys(error.keyValue[0] === 'username')){
@@ -37,17 +47,17 @@ router.post('/login', async (req, res) => {
         }
 
         const isPasswordValid = await user.verifyPassword(password);
-
         if(!isPasswordValid) {
             return res.status(403).send({error: 'The login information is wrong'})
         }
 
-        const userJson = user.toJSON()
+        const userObjJson = user.toJSON()
         return res.send({
-            user: userJson
+            user: userObjJson,
+            token: jwtSignUser(userObjJson)
         })
     } catch (error) {
-        return res.status(500).send({error: 'We have an error'})
+        return res.status(500).send({error: 'We have an error we don\'t know what to do'})
     }
 })
 

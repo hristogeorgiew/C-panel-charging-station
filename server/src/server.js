@@ -6,9 +6,11 @@ import mongoose from 'mongoose';
 
 import db from './config/db.js'
 import routes from './routes/Routes.js'
+import { isAuthenticated } from './middlewares/index.js';
 const app = express();
 
 app.use(cors());
+import pasport from './services/passport.js'
 app.use(morgan('dev'));
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
@@ -25,6 +27,7 @@ mongoose.connect(db.connectString, {
 })
 
 app.use(routes);
+app.use(isAuthenticated)
 
 const PORT = process.env.PORT || 5000;
 
